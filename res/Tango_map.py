@@ -15,7 +15,7 @@ def parcer():
     reap = req.get(url)
     now = datetime.datetime.now().strftime("%m-%d")
 
-    def adress():
+    def adress(work_material):
         return work_material.h3.text.strip().replace('Москва', '').strip(' ,.\n')
 
     # def phone():  # Функция поиска телефона в текстом html
@@ -23,49 +23,45 @@ def parcer():
 
     def time_(work_material):  # Функция поиска времени
         time_place = work_material.find_all('h3')[1]
-        # print(time_place.text)
         return time_place.find(text=re.compile(r'^(?:(?!руб).)*?$', flags=re.MULTILINE))
-    table = bs(reap.text, "html.parser")
-    # list_table = self.table.findAll(class_='djev_items djev_clearfix')
-    # print(table)
+
+    def dj(work_material):
+        try:
+            return re.search(r'(?:DJ|dj)(?:.)*', work_material.text)[0]
+        except TypeError:
+            return None
+    table = bs(reap.text, 'lxml')
     list_of_time = []
     list_of_adress = []
     list_of_dates = []
     list_of_url = []
     list_of_practic = []
+    list_of_dj = []
     for teg in table.findAll(class_='djev_item_content'):
-        # print(teg)
-        # print(1)
         date_in_url = teg.find('a')['href'].strip()
         date = re.search(r"\d{4}-\d{2}-\d{2}", date_in_url)[0][5:]
-        # print(date)
         if now > date:
             continue
         practic = teg.find('a').text.strip()[:-5]
         if 'милонга' not in practic.lower() or 'практика' in practic.lower():
             continue
-        # print(practic.lower())
         url_for_lesson = url[:-4]+date_in_url
         reap_for_link = req.get(url_for_lesson)
         # Здесь создается все необходимое для перехода по ссылкам
         table_for_lesson = bs(reap_for_link.text, "html.parser")
         work_material = table_for_lesson.find(class_="djev_fulltext")
-        #
-
         list_of_practic.append(practic)
-        les_adress = adress()
         # tel = phone() or ["Телефон не указан"] # Может нужно может нет
-
-        time = time_(work_material) or ["Время не указано"]
-        # print(time)
         list_of_url.append(url_for_lesson)
         list_of_dates.append(date)
-        list_of_adress.append(les_adress)
-        list_of_time.append(time)
-        # print(list_of_time)
-    data =  pd.DataFrame(
-        {"Дата": list_of_dates, "Время": list_of_time, "Вид_деятельности": list_of_practic, "Адрес": list_of_adress})
+        list_of_adress.append(adress(work_material))
+        list_of_time.append(time_(work_material))
+        list_of_dj.append(dj(work_material))
+    data = pd.DataFrame(
+        {"Дата": list_of_dates, "Время": list_of_time, "Вид_деятельности": list_of_practic,
+         "Адрес": list_of_adress, 'Диджей': list_of_dj, 'Ссылка': list_of_url})
     return data
+
 
 def main():
     return parcer()
@@ -73,7 +69,3 @@ def main():
 
 if __name__ == "__main__":
     print(main())
-    # A = Tango()
-    # A._page()
-    # for i in A.data.iloc:
-    # print(i)
