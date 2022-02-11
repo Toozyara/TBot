@@ -14,7 +14,6 @@ def parcer():
     url = r"http://tango-map.ru/ru/"
     reap = req.get(url)
     now = datetime.datetime.now().strftime("%m-%d")
-
     def adress():
         return work_material.h3.text.strip().replace('Москва', '').strip(' ,.\n')
 
@@ -26,8 +25,8 @@ def parcer():
         # print(time_place.text)
         return time_place.find(text=re.compile(r'^(?:(?!руб).)*?$', flags=re.MULTILINE))
     table = bs(reap.text, "html.parser")
-    # list_table = self.table.findAll(class_='djev_items djev_clearfix')
-    # print(table)
+     #list_table = self.table.findAll(class_='djev_items djev_clearfix')
+     #print(table)s
     list_of_time = []
     list_of_adress = []
     list_of_dates = []
@@ -38,13 +37,13 @@ def parcer():
         # print(1)
         date_in_url = teg.find('a')['href'].strip()
         date = re.search(r"\d{4}-\d{2}-\d{2}", date_in_url)[0][5:]
-        # print(date)
+        #print(date)
         if now > date:
             continue
         practic = teg.find('a').text.strip()[:-5]
-        if 'милонга' not in practic.lower() or 'практика' in practic.lower():
+        if ('милонга' not in practic.lower()) or ('практика' in practic.lower()):
             continue
-        # print(practic.lower())
+        #print(practic.lower())
         url_for_lesson = url[:-4]+date_in_url
         reap_for_link = req.get(url_for_lesson)
         # Здесь создается все необходимое для перехода по ссылкам

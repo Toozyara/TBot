@@ -1,18 +1,38 @@
 import logging
 from aiogram import Bot, Dispatcher, executor, types
-from os import getenv
-from sys import exit
+import os
+import sys
+import time
+import asyncio
+import conf
 import sqlite3
 import datetime
 import re
+
+sys.path.append(os.path.abspath("./res/"))
+from res.untitled12 import construct_data
+
+start = time.time()
+
+"""async def update_data():
+    while True:
+        await asyncio.sleep()
+        print('yes')
+        await construct_data()
+
+updata = asyncio.ensure_future(update_data())
+
+update_loop = asyncio.get_event_loop()
+update_loop.run_until_complete(asyncio.gather(*updata))
+update_loop.close()"""
 
 def datanow(data):
     if datacheck(data) == True:
         nstr = data
         nstr = nstr[3] + nstr[4] + '-' + nstr[0] + nstr[1]
-    if (data == 'now'):
+    elif (data == 'now'):
         nstr = datetime.datetime.now().strftime("%m-%d")
-    if (data == 'tomorrow'):
+    elif (data == 'tomorrow'):
         now = datetime.datetime.now() + datetime.timedelta(days=1)
         nstr = now.strftime("%m-%d")
 
@@ -50,7 +70,7 @@ def datacheck(data):
         result = False
     return result
 
-bot_token = getenv("BOT_TOKEN")
+bot_token = conf.TOKEN_A
 if not bot_token:
     exit("Error: no token provided")
 
@@ -65,11 +85,17 @@ async def send_welcome(message: types.Message):
 """
 flaglist = [0,0,0,0,0,0]
 
-@dp.message_handler(commands=['today'])
-async def send_welcome(message: types.Message):
-    srts = sql_man('now')
+#@dp.message_handler(commands=[''])
+#await message.reply()
+
+async def print_message(message: types.Message, when=''):
+    srts = sql_man(when)
     for i in range(len(srts[0][0])):
         await message.reply(parslist(srts, i))
+
+@dp.message_handler(commands=['today'])
+async def beka(message: types.Message):
+    await print_message(message, 'now')
 
 @dp.message_handler(commands=['tomorrow'])
 async def send_welcome(message: types.Message):
@@ -89,6 +115,8 @@ async def cmd_start(message: types.Message):
 @dp.message_handler(commands=['help'])
 async def send_welcome(message: types.Message):
     await message.reply("У меня лапки..")
+
+
 
 @dp.message_handler(commands=['data'])
 async def send_welcome(message: types.Message):
@@ -128,6 +156,10 @@ async def echo(message: types.Message):
         await message.answer("Что-то пошло не так")
     if message.text == "пидр":
         await message.answer("сам такой")
+
+"""    if (time.time() - start >= 2.2):
+        print('a')
+        start = time.time()"""
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
