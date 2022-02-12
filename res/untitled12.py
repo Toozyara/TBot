@@ -58,6 +58,5 @@ def construct_data():
                        COUNT(*) > 1""")
         con.commit()
 
-
 if __name__ == "__main__":
     construct_data()
