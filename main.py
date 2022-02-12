@@ -86,13 +86,13 @@ flaglist = [0,0,0,0,0,0]
 async def print_scheduler(message: types.Message, when=''):
     srts = sql_man(when)
     for j in range(len(srts)):
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
         await message.reply(parslist(srts, j))
 
 async def print_schedule(message: types.Message, when=''):
     srts = sql_man(when)
     for i in range(len(srts)):
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
         await message.answer(parslist(srts, i))
 
 @dp.message_handler(commands=['update'])
