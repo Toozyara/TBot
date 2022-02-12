@@ -29,7 +29,7 @@ def parcer():
         try:
             return re.search(r'(?:DJ|dj)(?:.)*', work_material.text)[0]
         except TypeError:
-            return None
+            return ""
     table = bs(reap.text, 'lxml')
 
     list_of_time = []

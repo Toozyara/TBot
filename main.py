@@ -1,3 +1,7 @@
+"""
+@author: Toozyara
+"""
+
 import logging
 from aiogram import Bot, Dispatcher, executor, types
 import os
@@ -16,25 +20,30 @@ start = time.time()
 
 
 def datanow(data):
-    if datacheck(data) == True:
+    if datacheck(data):
         nstr = data
         nstr = nstr[3] + nstr[4] + '-' + nstr[0] + nstr[1]
     elif data == 'now':
         nstr = datetime.datetime.now().strftime("%m-%d")
     elif data == 'tomorrow':
-        now = datetime.datetime.now() + datetime.timedelta(days=1)
-        nstr = now.strftime("%m-%d")
+        o_now = datetime.datetime.now() + datetime.timedelta(days=1)
+        nstr = o_now.strftime("%m-%d")
     elif data == "*":
         pika = " SELECT * FROM lessons "
         return pika
     pika = "SELECT * FROM lessons where date = '" + nstr + "' order by date asc;"
     return pika
-now = datetime.datetime.now() + datetime.timedelta(days=1)
-now = now.strftime("%m-%d")
-sqllist = ['Дата: ', 'Время: ', 'Название: ', 'Адрес: ']
+
+    """
+#o_now = datetime.datetime.now() + datetime.timedelta(days=1)
+#now = o_now.strftime("%m-%d")
+"""
+sqllist = [
+    'Дата: ', 'Время: ', 'Название: ', 'Адрес: ', 'DJ: ', 'Ссылка: '
+    ]
 
 def sql_man(data):
-    con = sqlite3.connect(r'res/tangodatabase.db')
+    con = sqlite3.connect(r'tangodatabase.db')
     con.row_factory = sqlite3.Row
     cur = con.cursor()
     cur.execute(datanow(data))
@@ -46,21 +55,22 @@ def sql_man(data):
 
 def parslist(sqlist, ind):
     sqlstr = ''
-    for kpar in range(4):
+    for kpar in range(len(sqlist[ind])):
         sqlstr = sqlstr + sqllist[kpar] + sqlist[ind][kpar] + '\n'
     return sqlstr
-
 def datacheck(data):
     match = re.search(r'\d{2}.\d{2}', data)
+    """
     #date = datetime.strptime(match.group(), '%m-%d').date()
     #print(date)
-    if (match != None):
+    """
+    if match != None:
         result = True
     else:
         result = False
     return result
 
-bot_token = conf.TOKEN_A
+bot_token = conf.TOKEN_B
 if not bot_token:
     exit("Error: no token provided")
 
@@ -81,7 +91,7 @@ asyncio.set_event_loop(update_loop)
 update_loop.run_until_complete(asyncio.gather(updata))
 update_loop.close()"""
 
-flaglist = [0,0,0,0,0,0]
+flaglist = [0]
 
 async def print_scheduler(message: types.Message, when=''):
     srts = sql_man(when)
@@ -98,9 +108,7 @@ async def print_schedule(message: types.Message, when=''):
 @dp.message_handler(commands=['update'])
 async def up(message: types.Message):
     construct_data()
-    await message.answer('Ok!')
-#await message.reply()
-
+    await message.reply('Ok!')
 
 @dp.message_handler(commands=['today'])
 async def beka(message: types.Message):
@@ -114,7 +122,7 @@ async def send_welcome(message: types.Message):
 async def cmd_start(message: types.Message):
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     buttons_1 = ["Сегодня", "Завтра"]
-    buttons_2 = ["Напишу дату","Что есть на неделе?"]
+    buttons_2 = ["Напишу дату", "Что есть на неделе?"]
     keyboard.add(*buttons_1)
     keyboard.add(*buttons_2)
     await message.answer("Когда пойдём на милонгу?", reply_markup=keyboard)
@@ -127,7 +135,7 @@ async def send_welcome(message: types.Message):
 async def send_welcome(message: types.Message):
     await message.answer("Укажите дату в формате: 'dd.mm'")
     flaglist[0] = 0
-    if (datacheck(str(message.text)) == True):
+    if datacheck(str(message.text)):
         await print_scheduler(message, message.text)
 
 @dp.message_handler(commands=['schedule'])
@@ -136,25 +144,25 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler()
 async def echo(message: types.Message):
-    if message.text == "Напишу дату":
-        await message.answer("Укажите дату в формате: 'dd.mm'")
+    try:
         flaglist[0] = 0
-    elif datacheck(message.text) == True:
-        await print_schedule(message, message.text)
-    elif message.text == "Завтра":
-        await print_schedule(message, 'tomorrow')
-    elif message.text == "Сегодня":
-        await print_schedule(message, 'now')
-    elif message.text == "Что есть на неделе?":
-        await print_scheduler(message, '*')
-
-    elif message.text == "пидр":
-        await message.answer("сам такой")
-    else:
-        if flaglist[0] == 1:
-            await message.answer("Что-то пошло не так")
+        if message.text == "Напишу дату":
+            await message.answer("Укажите дату в формате: 'dd.mm'")
+        elif datacheck(message.text):
+            await print_schedule(message, message.text)
+        elif message.text == "Завтра":
+            await print_schedule(message, 'tomorrow')
+        elif message.text == "Сегодня":
+            await print_schedule(message, 'now')
+        elif message.text == "Что есть на неделе?":
+            await print_scheduler(message, '*')
+        elif message.text == "пидр":
+            await message.answer("сам такой")
+        else:
+            if flaglist[0] == 1:
+                await message.answer("Что-то пошло не так")
+    except TypeError:
         flaglist[0] = 1
-
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True)
