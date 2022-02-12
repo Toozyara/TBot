@@ -23,6 +23,24 @@ def parser():
         month = list_of_month[data[1].strip()]
         return f'{month}-{day}'
 
+    def practics(cell):
+        acum = []
+        for i in cell.find_all('td')[2].find_all(style='text-align: left;'):
+            if i.find('del'):
+                acum += [None]
+                continue
+            acum += [i.text.strip().replace('\n', ' ').replace('\xa0', ' ')]
+        return acum
+
+    def urls(cell):
+        acum = []
+        for i in cell.find_all('td')[6].find_all('div'):
+            try:
+                piece = i.find('a').get('href')
+            except AttributeError:
+                piece = None
+            acum += [piece]
+        return acum
     url = r'http://www.tangocity.ru/afisha/milongi'
     reap = req.get(url)
     soup = bs(reap.text, 'lxml')
@@ -31,19 +49,23 @@ def parser():
     adres_data = []
     time_data = []
     url_data = []
+    dj_data = []
     for cell in soup.find_all(style="background-color: #ebebeb;"):
+        # print(cell.text)
         date = date_trans(cell)
         if date < now:
             continue
-        lessons += [i.text.strip().replace('\n', ' ').replace('\xa0', ' ')
-                    for i in cell.find_all('td')[2].find_all(style='text-align: left;')]
+        dj_data += [i.text.replace('dj', '').strip() or None for i in cell.find_all('td')[4].find_all('div')]
+        lessons += practics(cell)
         adres_data += [i.find_parent().text.strip().replace('\xa0', ' ') for i in cell.select('[href]') if i.text]
-        time_data += [i.text.strip() for i in cell.find_all('td')[-2].find_all(style='text-align: left;')]
+        time_data += [i.text.replace('\n', ' ').strip()
+                      for i in cell.find_all('td')[-2].find_all(style='text-align: left;')]
         dates += (len(time_data)-len(dates))*[date]
-        url_data += [i['href'] for i in cell.find_all('td')[3].select('[href]')]
-    data_colecter = pd.DataFrame({"Дата": dates, "Время": time_data, "Вид_деятельности": lessons, "Адрес": adres_data})
-    # print(data_colecter)
-    return data_colecter
+        url_data += urls(cell)
+    data_colecter = pd.DataFrame({"Дата": dates, "Время": time_data,
+                                 "Вид_деятельности": lessons, "Адрес": adres_data, "Диджей": dj_data,  "Ссылка":  url_data})
+    out = data_colecter[data_colecter["Вид_деятельности"] > '']
+    return out
 
 
 def main():
@@ -51,4 +73,4 @@ def main():
 
 
 if __name__ == '__main__':
-    print(main())
+    print(main()["Диджей"])
