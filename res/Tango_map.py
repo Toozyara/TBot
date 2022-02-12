@@ -31,6 +31,7 @@ def parcer():
         except TypeError:
             return None
     table = bs(reap.text, 'lxml')
+
     list_of_time = []
     list_of_adress = []
     list_of_dates = []
@@ -43,8 +44,9 @@ def parcer():
         if now > date:
             continue
         practic = teg.find('a').text.strip()[:-5]
-        if 'милонга' not in practic.lower() or 'практика' in practic.lower():
+        if ('милонга' not in practic.lower()) or ('практика' in practic.lower()):
             continue
+
         url_for_lesson = url[:-4]+date_in_url
         reap_for_link = req.get(url_for_lesson)
         # Здесь создается все необходимое для перехода по ссылкам
