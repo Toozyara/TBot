@@ -14,7 +14,7 @@ import datetime
 import re
 
 sys.path.append(os.path.abspath("./res/"))
-from res.switch import construct_data
+from res.switch import main
 #from res import untitled12
 
 #import res.untitled12
@@ -33,16 +33,16 @@ start = time.time()
 def datanow(data):
     if datacheck(data):
         nstr = data
-        nstr = nstr[3] + nstr[4] + '-' + nstr[0] + nstr[1]
+        nstr = nstr[3] + nstr[4] + '.' + nstr[0] + nstr[1]
     elif data == 'now':
-        nstr = datetime.datetime.now().strftime("%m-%d")
+        nstr = datetime.datetime.now().strftime("%m.%d")
     elif data == 'tomorrow':
         o_now = datetime.datetime.now() + datetime.timedelta(days=1)
-        nstr = o_now.strftime("%m-%d")
+        nstr = o_now.strftime("%m.%d")
     elif data == "*":
         pika = " SELECT * FROM lessons "
         return pika
-    pika = "SELECT * FROM lessons where date = '" + nstr + "' order by date desc;"
+    pika = f"SELECT * FROM lessons where date = '{nstr}' order by date desc;"
     return pika
 
     """
@@ -118,7 +118,7 @@ async def print_schedule(message: types.Message, when=''):
 
 @dp.message_handler(commands=['update'])
 async def up(message: types.Message):
-    construct_data()
+    main()
     await message.reply('Ok!')
 
 @dp.message_handler(commands=['today'])

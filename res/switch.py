@@ -5,51 +5,38 @@ Created on Sat Jan 22 22:33:06 2022
 @author: magika
 """
 
+import time
 import sqlite3
-import pandas as pd
-from Tango_map import main as _map
-from Tango_city import main as city
+from tango_map import opener as _map
+from tango_city import parser as city
+import asyncio
+import nest_asyncio
+import aiosqlite3
+nest_asyncio.apply()
+# from Tango_city_2 import main as city
 
 
-def construct_data():
-    con = sqlite3.connect("tangodatabase.db")
-    cursor = con.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS lessons(
-        date Date,
+async def construct_data(loop):
+    con = await aiosqlite3.connect("tangodatabase.db", loop=loop)
+    cur = await con.cursor()
+    await cur.execute("""DROP TABLE IF EXISTS lessons""")
+    await con.commit()
+    await cur.execute("""CREATE TABLE IF NOT EXISTS lessons(
+        date TEXT,
         time TEXT,
         job TEXT,
         adres TEXT,
         dj TEXT,
         link TEXT
         )""")
-    con.commit()
-
-    data_map = _map()
-    data_city = city()
-    data_unit = pd.concat([data_map, data_city], ignore_index=True)
-    # data_for_com = pd.DataFrame({"Дата": [], "Время": [], "Вид_деятельности": [],
-                                 # "Адрес": [], 'Диджей': [], "Ссылка": []})
-    # for i in cursor.execute("""SELECT * FROM lessons"""):
-    #     data_for_com = data_for_com.append({"Дата": i[0], "Время": i[1], "Вид_деятельности": i[2],
-    #                                         "Адрес": i[3], 'Диджей': i[4], 'Ссылка': i[5]}, ignore_index=True)
-    data_unit = data_unit.sort_values(by="Дата")
-    # if not data_unit.equals(data_for_com):
-    cursor.execute("""DROP TABLE lessons""")
-    con.commit()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS lessons(
-        date Date,
-        time TEXT,
-        job TEXT,
-        adres TEXT,
-        dj TEXT,
-        link TEXT
-        )""")
-    con.commit()
-    for i in data_unit.iloc:
-        cursor.execute("""INSERT INTO lessons VALUES (?,?,?,?,?,?)""",
-                       (i[0], i[1], i[2], i[3], i[4], i[5]))
-        con.commit()
-    cursor.execute("""SELECT
+    await con.commit()
+    for funk in asyncio.as_completed([_map(), city()]):
+        i = await funk
+        for tuple1 in i:
+            await cur.executemany("""INSERT INTO lessons(date,time,job,adres,dj,link) VALUES (?,?,?,?,?,?)""", tuple1)
+            await con.commit()
+    # time.sleep(10)1
+    await cur.execute("""SELECT
                    date, job,adres, COUNT(*)
                    FROM
                    lessons
@@ -57,8 +44,23 @@ def construct_data():
                    date, job, adres
                    HAVING 
                    COUNT(*) > 1""")
-    con.commit()
+    await con.commit()
+    await cur.execute("""SELECT
+                   date, dj, COUNT(*)
+                   FROM
+                   lessons
+                   GROUP BY
+                   date, dj
+                   HAVING 
+                   COUNT(*) > 1""")
+    await con.commit()   
+
+
+def main():
+    event_loop = asyncio.get_event_loop()
+    event_loop.run_until_complete(construct_data(event_loop))
+    # return construct_data()
 
 
 if __name__ == "__main__":
-    construct_data()
+    main()
