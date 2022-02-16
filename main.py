@@ -14,10 +14,21 @@ import datetime
 import re
 
 sys.path.append(os.path.abspath("./res/"))
+from res.switch import construct_data
+#from res import untitled12
+
+#import res.untitled12
+#import res.Tango_map as Tango_map
+#import res
+
+
+#from res.untitled12 import construct_data
+""" переделать говно ниже на лини не работает без конды
+sys.path.append(os.path.abspath("./res/"))
 from res.untitled12 import construct_data
 
 start = time.time()
-
+"""
 
 def datanow(data):
     if datacheck(data):
@@ -31,7 +42,7 @@ def datanow(data):
     elif data == "*":
         pika = " SELECT * FROM lessons "
         return pika
-    pika = "SELECT * FROM lessons where date = '" + nstr + "' order by date asc;"
+    pika = "SELECT * FROM lessons where date = '" + nstr + "' order by date desc;"
     return pika
 
     """
@@ -70,7 +81,7 @@ def datacheck(data):
         result = False
     return result
 
-bot_token = conf.TOKEN_B
+bot_token = conf.TOKEN_A
 if not bot_token:
     exit("Error: no token provided")
 
