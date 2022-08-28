@@ -23,7 +23,7 @@ from res.switch import main
 
 
 #from res.untitled12 import construct_data
-""" переделать говно ниже на лини не работает без конды
+""" переделать для лини, не работает без конды
 sys.path.append(os.path.abspath("./res/"))
 from res.untitled12 import construct_data
 
@@ -167,8 +167,8 @@ async def echo(message: types.Message):
             await print_schedule(message, 'now')
         elif message.text == "Что есть на неделе?":
             await print_scheduler(message, '*')
-        elif message.text == "пидр":
-            await message.answer("сам такой")
+        elif message.text == "нет спасибо":
+            await message.answer("я не голодный")
         else:
             if flaglist[0] == 1:
                 await message.answer("Что-то пошло не так")
